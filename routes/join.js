@@ -29,9 +29,9 @@ router.post('/boss', function(req, res, next){
     // store table의 ai값 초기화
     con.query("select count(*) as cnt from TheWorkDiary.store;", function(err, result, field){
         if (err) throw err;
-        const cnt=result[0].cnt;
+        const cnt=result[0].cnt+1;
         
-        con.query('alter table TheWorkDiary.store AUTO_INCREMENT=?;', [cnt]);
+        con.query('alter table TheWorkDiary.store AUTO_INCREMENT=?;', [cnt-1]);
 
         // insert to store Table
         con.query(insertSql, [info.bossID, info.pw, info.storeName, info.bossName, info.phone, info.address], function(err, result, field){
@@ -40,7 +40,7 @@ router.post('/boss', function(req, res, next){
         });
 
         // create new store's sales Table
-        const createSql = "CREATE TABLE `TheWorkDiary`.`sales_"+cnt+"` (`date` INT NOT NULL, `dailySales` INT NOT NULL, `storeID` INT NOT NULL, PRIMARY KEY (`date`), INDEX `sales_storeID_idx` (`storeID` ASC) VISIBLE, CONSTRAINT `sales_storeID` FOREIGN KEY (`storeID`) REFERENCES `TheWorkDiary`.`store` (`storeID`) ON DELETE CASCADE ON UPDATE CASCADE);"
+        const createSql = "CREATE TABLE `TheWorkDiary`.`sales_"+cnt+"` (`date` INT NOT NULL, `dailySales` INT NOT NULL, `storeID` INT NOT NULL, PRIMARY KEY (`date`), INDEX `sales_"+cnt+"_idx` (`storeID` ASC) VISIBLE, CONSTRAINT `sales_"+cnt+"` FOREIGN KEY (`storeID`) REFERENCES `TheWorkDiary`.`store` (`storeID`) ON DELETE CASCADE ON UPDATE CASCADE);"
         con.query(createSql, function(err){if(err) throw err;});
     });
     res.write('<script>alert("가게가 등록되었습니다!"); location.href = "/login";</script>');
@@ -92,20 +92,20 @@ router.post('/staff', function(req, res, next){
         phone: body.phone,
         bank: body.bank,
         accountNumber: body.accountNumber,
-        houryWage: body.houryWage
+        hourlyWage: body.hourlyWage
     };
 
     const insertSql="INSERT INTO `TheWorkDiary`.`staff` (`staffID`, `password`, `staffName`, `hourlyWage`, `phone`, `bank`, `accountNumber`, `storeID`) VALUES (?,?,?,?,?,?,?,?);";
-    const createSql="CREATE TABLE `TheWorkDiary`.`salary_"+info.staffID.replace(/\s*$/, "")+"` (`date` INT NOT NULL, `workingHours` INT NOT NULL, `dailyWage` INT NOT NULL, `staffID` VARCHAR(45) NOT NULL, PRIMARY KEY (`date`), INDEX `salary_StaffID_idx` (`staffID` ASC) VISIBLE, CONSTRAINT `salary_StaffID` FOREIGN KEY (`staffID`) REFERENCES `TheWorkDiary`.`staff` (`staffID`) ON DELETE CASCADE ON UPDATE CASCADE);"
+    const createSql="CREATE TABLE `TheWorkDiary`.`salary_"+info.staffID.replace(/\s*$/, "")+"` (`date` INT NOT NULL, `workingHours` INT NOT NULL, `dailyWage` INT NOT NULL, `staffID` VARCHAR(45) NOT NULL, PRIMARY KEY (`date`), INDEX `salary_"+info.staffID.replace(/\s*$/, "")+"_idx` (`staffID` ASC) VISIBLE, CONSTRAINT `salary_"+info.staffID.replace(/\s*$/, "")+"` FOREIGN KEY (`staffID`) REFERENCES `TheWorkDiary`.`staff` (`staffID`) ON DELETE CASCADE ON UPDATE CASCADE);"
 
-    if(body.accountNumber>=9150){
-        con.query(insertSql, [info.staffID, info.pw, info.name, info.houryWage, info.phone, info.bank, info.accountNumber, info.storeID], function(err, result, field){
+    if(info.houryWage>=9150){
+        con.query(insertSql, [info.staffID, info.pw, info.name, Number(info.hourlyWage), info.phone, info.bank, info.accountNumber, info.storeID], function(err, result, field){
             if(err) throw err;
+            console.log(houryWage);
             console.log("Staff Join Success!!");
         });    
     }else{
-        info.houryWage=9150;
-        con.query(insertSql, [info.staffID, info.pw, info.name, info.houryWage, info.phone, info.bank, info.accountNumber, info.storeID], function(err, result, field){
+        con.query(insertSql, [info.staffID, info.pw, info.name, 9150, info.phone, info.bank, info.accountNumber, info.storeID], function(err, result, field){
             if(err) throw err;
             console.log("Staff Join Success!!");
         });
