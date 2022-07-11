@@ -27,38 +27,41 @@ router.post('/', function(req, res, next){
         const selectStaffSql="select password, staffName from TheWorkDiary.staff where staffID=?";
 
         con.query(selectBossSql, [id], function(err, result, field){
-            if (err) throw err;
-            if(result[0].password == pw){
-                console.log(`Boss ${id} is Login Success!!`);
-                req.session.user={
-                    id: id,
-                    pw: pw,
-                    name: result[0].name,
-                    grade: b,
-                    authorized: true
-                };
-                res.redirect('/boss');
-            } else{
+            try{
+                if(result[0].password == pw){
+                    console.log(`Boss ${id} is Login Success!!`);
+                    req.session.user={
+                        id: id,
+                        pw: pw,
+                        name: result[0].bossName,
+                        grade: "b",
+                        authorized: true
+                    };
+                    console.log(req.session.user);
+                    res.redirect('/boss');
+                }
+            } catch(err){
+                console.log(err);
                 con.query(selectStaffSql, [id], function(err, result, field){
                     try{
                         if(result[0].password == pw){
                             console.log(`Staff ${id} is Login Success!!`);
-                            if(result[0].passwork == pw){
-                                console.log(`Staff ${id} is Login Success!!`);
-                                req.session.user={
-                                    id: id,
-                                    pw: pw,
-                                    grade: s,
-                                    name: result[0].name,
-                                    authorized: true
-                                };
+                            req.session.user={
+                                id: id,
+                                pw: pw,
+                                grade: "s",
+                                name: result[0].staffName,
+                                workStatus: "No",
+                                officeGoingHour: 0,
+                                authorized: true
+                            };
                             res.redirect('/staff');
-                            }
                         } else{
                             console.log('Login Failed...');
                             res.send('<script>alert("회원 정보가 올바르지 않습니다. 다시 시도해주세요.")</script>');
                         }    
                     } catch(err){
+                        console.log(err);
                         console.log('Login Failed...');
                         res.send('<script>alert("회원 정보가 올바르지 않습니다. 다시 시도해주세요.")</script>');
                     }
